@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Snake</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+        	canvas{
+        		margin-left: auto;
+        		margin-right: auto;
+        		display: block;
+        		margin-bottom: 10px;
+        	}
+        	h1{
+        		text-align: center;
+            }
+            #buttons{
+                text-align: center;
+            }
+            button{
+                margin-right: 25px;
+            }
+        </style>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            //grid 40x20
+	        var canvas;
+	        var context;
+            var snake = [];
+            var food = [];
+	        var running = false;
+            var direction; //0 = left, 1 = up, 2 = right, 3 = down
+
+        	$(document).ready(function(){
+        		canvas = document.getElementById("c");       		
+        		//draws grid
+				context = canvas.getContext("2d");
+                newGame();
+	        });
+
+            $(document).keydown(function(e) {
+                if(e.which>36 && e.which < 41){
+                    e.preventDefault();
+                    new_direction = e.which -37;
+                    if(direction % 2 != new_direction % 2){
+                        direction = new_direction;
+                    }
+                    if(!running){
+                        running = true;
+                        start();
+                    }
+                }            
+            });
+
+            function newGame(){
+                running = false;
+                while(snake.length > 0){
+                    deleteLast();
+                }
+                context.strokeStyle = "#aaa";
+                context.rect(0.5, 0.5,801, 401);
+                context.stroke();
+                context.fillStyle = "#fff";
+                context.fillRect(1, 1, 800, 400);
+                addTo(20, 10);
+                addTo(19, 10);
+                randomFood();
+            }
+
+            function start(){
+                x = document.getElementById("speed").value;
+                x = (x*10)+20;
+                if(running){
+                    setTimeout(function(){
+                        step();
+                        start();
+                    }, x);    
+                }
+            }
+
+            function step(){
+                var head = snake[snake.length -1];
+                var new_x = head[0];
+                var new_y = head[1]
+                switch(direction){
+                    case 0:
+                        new_x--;
+                        break;
+                    case 1:
+                        new_y--;
+                        break;
+                    case 2:
+                        new_x++;
+                        break;
+                    case 3:
+                        new_y++;
+                        break;
+                }
+                if(new_x == food[0] && new_y == food[1]){
+                    randomFood();
+                }
+                else{
+                    deleteLast();
+                }
+
+                for(var i = 0; i < snake.length; i++){
+                    var cell = snake[i];
+                    for(var j = 0; j < cell.length; j++){
+                        if(cell[0] == new_x && cell[1] == new_y){
+                            lose();
+                        }
+                    }
+                }
+                if(new_x < 0 || new_x > 39 || new_y < 0 || new_y > 19){
+                    lose();
+                }
+                
+                addTo(new_x, new_y);
+            }
+
+            function randomFood(){
+                x = Math.floor(Math.random() * 40) * 20;
+                y = Math.floor(Math.random() * 20) * 20;
+                for(var i = 0; i < snake.length; i++){
+                    cell = snake[i]
+                    for(var j = 0; j < cell.length; j++){
+                        if(cell[0] == x/20 && cell[1] == y/20){
+                            randomFood();
+                            return;
+                        }
+                    }
+                }
+                food = [x/20, y/20];
+                context.fillStyle = "red";
+                context.fillRect(x+1, y+1, 20, 20);
+            }
+
+            function eatFood(){
+
+            }
+
+            function addTo(x, y){
+                snake.push([x, y])
+                x = x*20;
+                y = y*20;
+                context.fillStyle = "#888";
+                context.fillRect(x+1, y+1, 20, 20);
+            }
+            function deleteLast(){
+                var coords = snake.shift();
+                x = coords[0];
+                y = coords[1];
+                x = x*20;
+                y = y*20;
+                context.fillStyle = "#fff";
+                context.fillRect(x+1, y+1, 20, 20);
+            }
+
+            function lose(){
+                context.fillStyle = "black";
+                context.font = "bold 64px Arial";
+                context.fillText("You Lost!", 250, 200);
+                running = false;
+            }
+
+        </script>
+    </head>
+    <body>
+    	<h1>Snake</h1>
+        <canvas id="c" width = "802" height = "402"></canvas>
+        <div id="buttons">
+            <button onclick="newGame()">New Game</button>
+            Speed: <input id="speed" type="range" min="1" max="10" step = "1" value = "5"/>
+        </div>
+    </body>
+</html>
